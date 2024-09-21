@@ -1,0 +1,5 @@
+# VSCode configuration files
+/.vscode
+
+# Compiled Executable
+/isa-top
