@@ -59,7 +59,7 @@ int main (int argc, char *argv[]) {
 
         // Construct helper classes
         NetworkData netClass((args.find("-i"))->second);
-        Outputter output((args.find("-s"))->second ? args.find("-s") != args.end() : BYTES);
+        Outputter output(args.contains("-s") ? (args.find("-s"))->second : BYTES);
 
         // Main function loop
         while(true) {

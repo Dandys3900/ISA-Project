@@ -11,9 +11,10 @@ enum SORTBY {
 
 // Structure representing captured network traffic
 typedef struct {
-    string sourceIP    = "";
-    string destIP      = "";
-    unsigned int bytes = 0;
+    string sourceIP          = "";
+    string destIP            = "";
+    string protocol          = "";
+    unsigned long long bytes = 0;
 } NetRecord;
 
 class Outputter {
@@ -21,7 +22,7 @@ class Outputter {
         const int sortby;
 
     public:
-        Outputter (const unsigned int sortby);
+        Outputter (const unsigned int);
        ~Outputter ();
 };
 
