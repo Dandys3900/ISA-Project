@@ -13,6 +13,7 @@ class NetworkData {
         const string interface;
         vector<NetRecord> netData;
         pcap_t* descr;
+        pcap_if_t* devc;
         mutex vector_mutex;
         // Error buffer
         char errbuf[PCAP_ERRBUF_SIZE];
@@ -20,8 +21,8 @@ class NetworkData {
         // Captures packets
         void capturePackets();
 
-        // Check if provided interface is valid
-        void validateInterface();
+        // Check if provided interface is valid and returns found device structure
+        pcap_if_t* validateInterface();
 
     public:
         NetworkData (const string);

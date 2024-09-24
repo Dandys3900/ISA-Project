@@ -29,7 +29,7 @@ using namespace std;
 #define IPV6_HEADER 40
 
 // Output constants
-#define BYTES "b" // Default selection
+#define BYTES   "b"
 #define PACKETS "p"
 
 #endif // INCLUDES_H

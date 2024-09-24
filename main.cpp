@@ -2,6 +2,18 @@
 #include "NetworkData.h"
 #include "Outputter.h"
 
+// Global class instances
+unique_ptr<NetworkData> netClass = nullptr;
+unique_ptr<Outputter> outClass   = nullptr;
+
+void stopProgram(int sig_val) {
+    if (sig_val == SIGINT) {
+        // Gracefully exit when terminated
+        netClass->stopCapture();
+        exit(EXIT_SUCCESS);
+    }
+}
+
 void showHelp() {
     std::string help_text;
     help_text += "Tool for displaying network statistics:\n";
@@ -22,7 +34,7 @@ auto parseCLIargs(int argc, char *argv[]) {
         if ((++pos) >= argc)
             throw ProgramException("Missing value of argument");
         // Check if argument is not duplicit
-        if (!values.contains(ident))
+        if (values.contains(ident))
             throw ProgramException(format("Argument {} is already given", ident));
 
         /* TODO:
@@ -41,30 +53,31 @@ auto parseCLIargs(int argc, char *argv[]) {
     // Check compulsory flag "-i" is present
     if (!values.contains("-i"))
         throw ProgramException("Missing compulsory '-i' flag");
+    // Add "-s" default value if not given
+    if (!values.contains("-s"))
+        values.insert({"-s", BYTES});
     // Return parsed cli arguments
     return values;
 }
 
 int main (int argc, char *argv[]) {
-    // Set interrupt signal handling - CTRL+C
-    signal(SIGINT, [](int sig_val) {
-        // Gracefully exit when terminated
-        if (sig_val == SIGINT)
-            exit(EXIT_SUCCESS);
-    });
+    // Set interrupt signal handling
+    signal(SIGINT,  stopProgram);
+    signal(SIGTERM, stopProgram);
+    signal(SIGQUIT, stopProgram);
 
     try {
         // Parse cli arguments
         auto args = parseCLIargs(argc, argv);
+        // Construct classes
+        netClass = make_unique<NetworkData>((args.find("-i"))->second);
+        outClass = make_unique<Outputter>((args.find("-s"))->second);
 
-        // Construct helper classes
-        NetworkData netClass((args.find("-i"))->second);
-        Outputter output(args.contains("-s") ? (args.find("-s"))->second : BYTES);
-
-        netClass.startCapture();
+        // Begin capturing and processing packets
+        netClass->startCapture();
         // Main function loop
         while(true) {
-            auto data = netClass.getCurrentData();
+            auto data = netClass->getCurrentData();
             sleep(1);
         }
     } catch (const ProgramException& e) {

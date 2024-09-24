@@ -10,4 +10,9 @@ class ProgramException: public std::exception {
             : message(msg)
         {
         }
+
+        // Override what() method to return error message
+        const char* what() const noexcept {
+            return this->message.c_str();
+        }
 };

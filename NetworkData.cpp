@@ -82,10 +82,11 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
 NetworkData::NetworkData(const string interface)
     : interface (interface),
       netData   (),
-      descr     (NULL)
+      descr     (NULL),
+      devc      (NULL)
 {
     // Validate provided interface
-    this->validateInterface();
+    devc = this->validateInterface();
 }
 
 NetworkData::~NetworkData()
@@ -103,7 +104,7 @@ void NetworkData::addRecord(string srcIP, string destIP, string protocol, uint16
     });
 }
 
-void NetworkData::validateInterface() {
+pcap_if_t* NetworkData::validateInterface() {
     // List of all devices
     pcap_if_t* alldevs;
 
@@ -113,11 +114,10 @@ void NetworkData::validateInterface() {
 
     // Iterate over device to find user-provided interface
     for ( ; alldevs; alldevs = alldevs->next) {
-        // Device found, return
+        // Device found, return it
         if (alldevs->name == this->interface)
-            return;
+            return alldevs;
     }
-
     // Device not found - throw error
     throw ProgramException(format("Provided interface: {} not found", this->interface));
 }
@@ -129,17 +129,18 @@ void NetworkData::capturePackets() {
 
     // Begin capturing loop
     while(true) {
-        if (pcap_loop(descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
+        if (pcap_loop(this->descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
             throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
     }
 }
 
 void NetworkData::startCapture() {
     // Create thread for capturing loop
-    jthread(capturePackets);
+    jthread(&NetworkData::capturePackets, this);
 }
 
 void NetworkData::stopCapture() {
+    pcap_freealldevs(this->devc);
     pcap_breakloop(this->descr);
     pcap_close(this->descr);
 }
