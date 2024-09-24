@@ -4,11 +4,6 @@
 /*** Includes ***/
 #include "Includes.h"
 
-enum SORTBY {
-    BYTES = 0, // Default selection
-    PACKETS
-};
-
 // Structure representing captured network traffic
 typedef struct {
     string sourceIP          = "";
@@ -19,10 +14,10 @@ typedef struct {
 
 class Outputter {
     private:
-        const int sortby;
+        const string sortby;
 
     public:
-        Outputter (const unsigned int);
+        Outputter (const string);
        ~Outputter ();
 };
 

@@ -5,26 +5,26 @@
 #include "Includes.h"
 #include "Outputter.h"
 
-#define IPv4_TYPE 0x0800
-#define IPv6_TYPE 0x86DD
-#define ETHERNET_HEADER 14
-#define IPV6_HEADER 40
-
 // Handles captured packet
 void handlePacket(u_char*, const struct pcap_pkthdr*, const u_char*);
 
 class NetworkData {
     private:
-        const int interface;
+        const string interface;
         vector<NetRecord> netData;
         pcap_t* descr;
         mutex vector_mutex;
+        // Error buffer
+        char errbuf[PCAP_ERRBUF_SIZE];
 
         // Captures packets
         void capturePackets();
 
+        // Check if provided interface is valid
+        void validateInterface();
+
     public:
-        NetworkData (const int interface);
+        NetworkData (const string);
        ~NetworkData ();
 
         // Starts packet capturing
@@ -36,7 +36,7 @@ class NetworkData {
         void addRecord(string, string, string, uint16_t);
 
         // Returns array of captured traffic and sets its length
-        const vector<NetRecord> getCurrentData(unsigned int&);
+        const vector<NetRecord> getCurrentData();
 };
 
 #endif // NETWORKDATACLASS_H

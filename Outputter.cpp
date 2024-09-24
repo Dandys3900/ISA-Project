@@ -1,7 +1,7 @@
 ///*** Includes ***/
 #include "Outputter.h"
 
-Outputter::Outputter(const unsigned int sortby)
+Outputter::Outputter(const string sortby)
     : sortby (sortby)
 {
 }

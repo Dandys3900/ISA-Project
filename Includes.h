@@ -20,6 +20,16 @@
 #include <netinet/ether.h>
 #include <arpa/inet.h>
 
+#include "CustomException.cpp"
+
 using namespace std;
+
+// Network constants
+#define ETHERNET_HEADER 14
+#define IPV6_HEADER 40
+
+// Output constants
+#define BYTES "b" // Default selection
+#define PACKETS "p"
 
 #endif // INCLUDES_H

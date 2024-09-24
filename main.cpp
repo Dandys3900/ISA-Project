@@ -12,18 +12,18 @@ void showHelp() {
     cout << help_text << endl;
 }
 
-map<string, int> parseCLIargs(int argc, char *argv[]) {
-    map<string, int> values;
+auto parseCLIargs(int argc, char *argv[]) {
+    map<string, string> values;
     // Iterate over given arguments
     for (int pos = 1; pos < argc; ++pos) {
         // Parse argument value
         const string ident(argv[pos]);
         // Check if there is following argument to read value from
         if ((++pos) >= argc)
-            throw logic_error("Missing value of argument");
+            throw ProgramException("Missing value of argument");
         // Check if argument is not duplicit
         if (!values.contains(ident))
-            throw logic_error(format("Argument {} is already given", ident));
+            throw ProgramException(format("Argument {} is already given", ident));
 
         /* TODO:
         // Special case for help argument
@@ -34,13 +34,13 @@ map<string, int> parseCLIargs(int argc, char *argv[]) {
         */
 
         if (ident == "-i" || ident == "-s")
-            values.insert({ident, stoi(argv[pos])});
+            values.insert({ident, argv[pos]});
         else // Unknown argument
-            throw logic_error(format("Unknown argument {}", ident));
+            throw ProgramException(format("Unknown argument {}", ident));
     }
     // Check compulsory flag "-i" is present
     if (!values.contains("-i"))
-        throw logic_error("Missing compulsory '-i' flag");
+        throw ProgramException("Missing compulsory '-i' flag");
     // Return parsed cli arguments
     return values;
 }
@@ -61,11 +61,13 @@ int main (int argc, char *argv[]) {
         NetworkData netClass((args.find("-i"))->second);
         Outputter output(args.contains("-s") ? (args.find("-s"))->second : BYTES);
 
+        netClass.startCapture();
         // Main function loop
         while(true) {
+            auto data = netClass.getCurrentData();
             sleep(1);
         }
-    } catch (const logic_error& e) {
+    } catch (const ProgramException& e) {
         cout << "Error: " << e.what() << endl;
         // Exit with failure status
         return EXIT_FAILURE;

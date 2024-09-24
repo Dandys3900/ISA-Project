@@ -18,27 +18,23 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
 
     // Get class pointer
     NetworkData* classPtr = reinterpret_cast<NetworkData*>(args);
-    // Get IP version
-    auto ethHeader = (const struct ether_header*)packet;
-    uint16_t ipVer = ntohs(ethHeader->ether_type);
-
     // Allocate string for IP addresses
     string sourceIP, destIP, protocol;
     uint16_t bytes;
-    // Ensure enough size of address strings
-    sourceIP.reserve(INET_ADDRSTRLEN ? ipVer == IPv4_TYPE : INET6_ADDRSTRLEN),
-    destIP.reserve(INET_ADDRSTRLEN ? ipVer == IPv4_TYPE : INET6_ADDRSTRLEN);
 
+    auto ethHeader = (const struct ether_header*)packet;
     // Adapt parsing to IP version
-    switch(ipVer) {
-        case IPv4_TYPE: {
+    switch(ntohs(ethHeader->ether_type)) {
+        case ETHERTYPE_IP: { // IPv4
             // Extract data from packet
             auto ipHeader = (const struct ip*)(packet + ETHERNET_HEADER);
+
             // Get source, destination, protocol and bytes
-            inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIP.data(), INET_ADDRSTRLEN);
-            inet_ntop(AF_INET, &(ipHeader->ip_dst), destIP.data(), INET_ADDRSTRLEN);
+            sourceIP =  inet_ntoa(ipHeader->ip_src);
+            destIP   =  inet_ntoa(ipHeader->ip_dst);
             protocol = (protocolsMap.find(ipHeader->ip_p))->second;
-            bytes = ntohs(ipHeader->ip_len);
+            bytes    = ntohs(ipHeader->ip_len);
+
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip_p == IPPROTO_TCP || ipHeader->ip_p == IPPROTO_UDP) {
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
@@ -49,14 +45,19 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             }
             break;
         }
-        case IPv6_TYPE: {
+        case ETHERTYPE_IPV6: { // IPv6
             // Extract data from packet
             auto ipHeader = (const struct ip6_hdr*)(packet + ETHERNET_HEADER);
+            // Ensure enough size of address strings
+            sourceIP.reserve(INET6_ADDRSTRLEN);
+            destIP.reserve(INET6_ADDRSTRLEN);
+
             // Get source, destination, protocol and bytes
             inet_ntop(AF_INET6, &(ipHeader->ip6_src), sourceIP.data(), INET6_ADDRSTRLEN);
             inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(), INET6_ADDRSTRLEN);
             protocol = (protocolsMap.find(ipHeader->ip6_nxt))->second;
-            bytes = ntohs(ipHeader->ip6_plen) + IPV6_HEADER;
+            bytes    = ntohs(ipHeader->ip6_plen) + IPV6_HEADER;
+
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip6_nxt == IPPROTO_TCP || ipHeader->ip6_nxt == IPPROTO_UDP) {
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
@@ -67,18 +68,24 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             }
             break;
         }
+        case ETHERTYPE_ARP: // ARP
+            break;
+        case ETHERTYPE_REVARP: // RARP
+            break;
         default:
-            throw logic_error("Unknown IP version provided");
+            throw ProgramException("Unknown protocol provided");
     }
     // Add parsed data to vector
     classPtr->addRecord(sourceIP, destIP, protocol, bytes);
 }
 
-NetworkData::NetworkData(const int interface)
+NetworkData::NetworkData(const string interface)
     : interface (interface),
       netData   (),
-      descr     (nullptr)
+      descr     (NULL)
 {
+    // Validate provided interface
+    this->validateInterface();
 }
 
 NetworkData::~NetworkData()
@@ -96,33 +103,35 @@ void NetworkData::addRecord(string srcIP, string destIP, string protocol, uint16
     });
 }
 
-void NetworkData::capturePackets() {
+void NetworkData::validateInterface() {
     // List of all devices
     pcap_if_t* alldevs;
-    // Error buffer
-    char errbuf[PCAP_ERRBUF_SIZE];
 
     // Get all available devices
-    if (pcap_findalldevs(&alldevs, errbuf) == -1)
-        throw logic_error(format("Error in {}: {}", __FUNCTION__, errbuf));
+    if (pcap_findalldevs(&alldevs, this->errbuf) == -1)
+        throw ProgramException(format("Error in {}: {}", __FUNCTION__, errbuf));
 
-    // Iterate over device list to get n-device by given interface value
-    for (int pos = 1; pos != this->interface && alldevs; ++pos, alldevs = alldevs->next) {}
-    // Check if found
-    if (!alldevs)
-        throw logic_error("Requested interface number not found");
+    // Iterate over device to find user-provided interface
+    for ( ; alldevs; alldevs = alldevs->next) {
+        // Device found, return
+        if (alldevs->name == this->interface)
+            return;
+    }
 
+    // Device not found - throw error
+    throw ProgramException(format("Provided interface: {} not found", this->interface));
+}
+
+void NetworkData::capturePackets() {
     // Open device for sniffing
-    if (!(this->descr = pcap_open_live(alldevs->name, BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, -1, errbuf)))
-        throw logic_error(format("Error in {}: {}", __FUNCTION__, errbuf));
+    if (!(this->descr = pcap_open_live(this->interface.c_str(), BUFSIZ, PCAP_OPENFLAG_PROMISCUOUS, -1, this->errbuf)))
+        throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
 
     // Begin capturing loop
     while(true) {
         if (pcap_loop(descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
-            throw logic_error(format("Error in {}: {}", __FUNCTION__, errbuf));
+            throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
     }
-    // Cleanup
-    pcap_freealldevs(alldevs);
 }
 
 void NetworkData::startCapture() {
@@ -135,10 +144,8 @@ void NetworkData::stopCapture() {
     pcap_close(this->descr);
 }
 
-const vector<NetRecord> NetworkData::getCurrentData(unsigned int& length) {
+const vector<NetRecord> NetworkData::getCurrentData() {
     lock_guard<std::mutex> lock(this->vector_mutex);
-    // Set length of network data array
-    length = this->netData.size();
     // Return data
     return this->netData;
 }
