@@ -21,6 +21,8 @@
 #include <arpa/inet.h>
 #include <algorithm>
 #include <linux/if_packet.h>
+#include <tuple>
+#include <ncurses.h>
 
 #include "CustomException.cpp"
 

@@ -5,7 +5,7 @@ OBJS := $(SRCS:.cpp=.o)
 EXE := isa-top
 
 $(EXE): $(SRCS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(EXE) -lpcap
+	$(CXX) $(CXXFLAGS) $(SRCS) -o $(EXE) -lpcap -lncurses
 
 clean:
 	rm -f $(EXE)

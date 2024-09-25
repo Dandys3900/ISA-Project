@@ -77,7 +77,7 @@ int main (int argc, char *argv[]) {
         netClass->startCapture();
         // Main function loop
         while(true) {
-            auto data = netClass->getCurrentData();
+            outClass->processData(netClass->getCurrentData());
             sleep(1);
         }
     } catch (const ProgramException& e) {

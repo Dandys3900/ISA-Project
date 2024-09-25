@@ -29,14 +29,20 @@ NetworkData::~NetworkData()
 {
 }
 
-void NetworkData::addRecord(string key, uint16_t bytes) {
+void NetworkData::addRecord(netKey key, uint16_t bytes, string direction) {
     // Add parsed data to vector
     lock_guard<std::mutex> lock(this->vector_mutex);
     // Get key value stored in map
     NetRecord& curData = this->netData[key];
     // Update record value
-    curData.bytes   += bytes;
-    curData.packets += 1;
+    if (direction == TX) {
+        curData.bytes_tx   += bytes;
+        curData.packets_tx += 1;
+    }
+    else { // direction == RX
+        curData.bytes_rx   += bytes;
+        curData.packets_rx += 1;
+    }
 }
 
 pcap_if_t* NetworkData::validateInterface() {
@@ -82,7 +88,7 @@ void NetworkData::stopCapture() {
     pcap_close(this->descr);
 }
 
-const map<string, NetRecord> NetworkData::getCurrentData() {
+netMap NetworkData::getCurrentData() {
     lock_guard<std::mutex> lock(this->vector_mutex);
     // Return data
     return this->netData;
@@ -186,10 +192,10 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
         }
         case ETHERTYPE_ARP:    // ARP
         case ETHERTYPE_REVARP: // RARP
-            break;
+            return;
         default:
             throw ProgramException("Unknown protocol provided");
     }
     // Add parsed data to vector
-    classPtr->addRecord((format("{};{};{};{}", sourceIP, destIP, protocol, direction)), bytes);
+    classPtr->addRecord(make_tuple(sourceIP, destIP, protocol), bytes, direction);
 }

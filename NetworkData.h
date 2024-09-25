@@ -15,7 +15,7 @@ class NetworkData {
     private:
         const string interface;
         vector<string> macAddrs;
-        map<string, NetRecord> netData;
+        netMap netData;
         pcap_t* descr;
         pcap_if_t* devc;
         mutex vector_mutex;
@@ -39,10 +39,10 @@ class NetworkData {
         void stopCapture();
 
         // Adds captured data to vector
-        void addRecord(string, uint16_t);
+        void addRecord(netKey, uint16_t, string);
 
         // Returns array of captured traffic
-        const map<string, NetRecord> getCurrentData();
+        netMap getCurrentData();
 
         // Returns interface's MAC addresses
         const vector<string> getMACAddrs();
