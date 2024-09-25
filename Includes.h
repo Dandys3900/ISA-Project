@@ -19,6 +19,8 @@
 #include <netinet/udp.h>
 #include <netinet/ether.h>
 #include <arpa/inet.h>
+#include <algorithm>
+#include <linux/if_packet.h>
 
 #include "CustomException.cpp"
 
@@ -31,5 +33,11 @@ using namespace std;
 // Output constants
 #define BYTES   "b"
 #define PACKETS "p"
+
+// Packets directions
+#define RX "received"
+#define TX "transferred"
+
+#define NON_PROMISCUOUS_MODE 0
 
 #endif // INCLUDES_H

@@ -5,16 +5,21 @@
 #include "Includes.h"
 #include "Outputter.h"
 
+// Get MAC address of selected interface
+vector<string> getMACAddr(pcap_addr*);
+
 // Handles captured packet
 void handlePacket(u_char*, const struct pcap_pkthdr*, const u_char*);
 
 class NetworkData {
     private:
         const string interface;
-        vector<NetRecord> netData;
+        vector<string> macAddrs;
+        map<string, NetRecord> netData;
         pcap_t* descr;
         pcap_if_t* devc;
         mutex vector_mutex;
+        bool stop;
         // Error buffer
         char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -34,10 +39,13 @@ class NetworkData {
         void stopCapture();
 
         // Adds captured data to vector
-        void addRecord(string, string, string, uint16_t);
+        void addRecord(string, uint16_t);
 
-        // Returns array of captured traffic and sets its length
-        const vector<NetRecord> getCurrentData();
+        // Returns array of captured traffic
+        const map<string, NetRecord> getCurrentData();
+
+        // Returns interface's MAC addresses
+        const vector<string> getMACAddrs();
 };
 
 #endif // NETWORKDATACLASS_H
