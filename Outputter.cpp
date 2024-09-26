@@ -40,9 +40,12 @@ void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
     // Column titles
     mvprintw(0, 0, "%-35s %-35s %-10s %-20s %-20s", "Src IP:port", "Dst IP:port", "Proto", "Rx", "Tx");
     mvprintw(1, 0, "%-35s %-35s %-10s %-10s %-10s %-10s %-10s", "", "", "", "b/s", "p/s", "b/s", "p/s");
+
+    // Row index - start from third one
+    size_t pos = 2;
     // Show data
     for (auto record : data) {
-        mvprintw(0, 0, "%-35s %-35s %-10s %-10llu %-10llu %-10llu %-10llu",
+        mvprintw(pos, 0, "%-35s %-35s %-10s %-10llu %-10llu %-10llu %-10llu",
                     get<0>(record.first).c_str(),
                     get<1>(record.first).c_str(),
                     get<2>(record.first).c_str(),
@@ -50,6 +53,7 @@ void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
                     record.second.packets_rx,
                     record.second.bytes_tx,
                     record.second.packets_tx);
+        ++pos;
     }
     // Refresh with new data
     refresh();

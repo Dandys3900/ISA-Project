@@ -136,10 +136,10 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
     string sourceIP, destIP, protocol;
     uint16_t bytes;
 
-    auto ethHeader = (const struct ether_header*)packet;
+    auto ethHeader = (struct ether_header*)packet;
     // Extract source and destination MAC addresses to determine packet direction
-    const string srcMAC  = ether_ntoa((const struct ether_addr*)&ethHeader->ether_shost);
-    const string destMAC = ether_ntoa((const struct ether_addr*)&ethHeader->ether_dhost);
+    const string srcMAC  = ether_ntoa((struct ether_addr*)&ethHeader->ether_shost);
+    const string destMAC = ether_ntoa((struct ether_addr*)&ethHeader->ether_dhost);
 
     // Determine packet direction
     auto macAddrs = classPtr->getMACAddrs();
@@ -149,7 +149,7 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
     switch(ntohs(ethHeader->ether_type)) {
         case ETHERTYPE_IP: { // IPv4
             // Extract data from packet
-            auto ipHeader = (const struct ip*)(packet + ETHERNET_HEADER);
+            auto ipHeader = (struct ip*)(packet + ETHERNET_HEADER);
 
             // Get source, destination, protocol and bytes
             sourceIP = inet_ntoa(ipHeader->ip_src);
@@ -160,7 +160,7 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip_p == IPPROTO_TCP || ipHeader->ip_p == IPPROTO_UDP) {
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
-                auto header = (const struct tcphdr*)(packet + ETHERNET_HEADER + (4 * ipHeader->ip_hl));
+                auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + (4 * ipHeader->ip_hl));
                 // Add ports to IP addresses
                 sourceIP = format("{}:{}", sourceIP, ntohs(header->th_sport));
                 destIP   = format("{}:{}", destIP,   ntohs(header->th_dport));
@@ -169,21 +169,21 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
         }
         case ETHERTYPE_IPV6: { // IPv6
             // Extract data from packet
-            auto ipHeader = (const struct ip6_hdr*)(packet + ETHERNET_HEADER);
+            auto ipHeader = (struct ip6_hdr*)(packet + ETHERNET_HEADER);
             // Ensure enough size of address strings
             sourceIP.resize(INET6_ADDRSTRLEN);
             destIP.resize(INET6_ADDRSTRLEN);
 
             // Get source, destination, protocol and bytes
             inet_ntop(AF_INET6, &(ipHeader->ip6_src), sourceIP.data(), INET6_ADDRSTRLEN);
-            inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(), INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(),   INET6_ADDRSTRLEN);
             protocol = (protocolsMap.find(ipHeader->ip6_nxt))->second;
             bytes    = ntohs(ipHeader->ip6_plen) + IPV6_HEADER;
 
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip6_nxt == IPPROTO_TCP || ipHeader->ip6_nxt == IPPROTO_UDP) {
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
-                auto header = (const struct tcphdr*)(packet + ETHERNET_HEADER + IPV6_HEADER);
+                auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + IPV6_HEADER);
                 // Add ports to IP addresses
                 sourceIP = format("[{}]:{}", sourceIP, ntohs(header->th_sport));
                 destIP   = format("[{}]:{}", destIP,   ntohs(header->th_dport));
