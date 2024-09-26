@@ -3,10 +3,9 @@ CXXFLAGS := -std=c++20 -Wall -Wextra -g
 SRCS := main.cpp NetworkData.cpp Outputter.cpp CustomException.cpp
 OBJS := $(SRCS:.cpp=.o)
 EXE := isa-top
-LIBS := -lpcap -lncurses
 
 $(EXE): $(SRCS)
-	$(CXX) $(CXXFLAGS) $(SRCS) -o $(EXE) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SRCS) -lncurses -lpcap -o $(EXE)
 
 clean:
 	rm -f $(EXE)

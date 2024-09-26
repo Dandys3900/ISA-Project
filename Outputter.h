@@ -19,9 +19,13 @@ using netMap = map<netKey, NetRecord>;
 class Outputter {
     private:
         const string sortby;
+        unsigned long long KILO, MEGA, GIGA;
 
         // Use ncurses to display data in terminal
         void showData(const vector<pair<netKey, NetRecord>>);
+
+        // Convert values to kilo, mega, giga
+        string convertValue(unsigned long long);
 
     public:
         Outputter (const string);

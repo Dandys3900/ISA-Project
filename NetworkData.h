@@ -19,7 +19,7 @@ class NetworkData {
         pcap_t* descr;
         pcap_if_t* devc;
         mutex vector_mutex;
-        bool stop;
+        jthread captureThread;
         // Error buffer
         char errbuf[PCAP_ERRBUF_SIZE];
 

@@ -2,12 +2,33 @@
 #include "Outputter.h"
 
 Outputter::Outputter(const string sortby)
-    : sortby (sortby)
+    : sortby (sortby),
+      KILO   (1000),
+      MEGA   (KILO * 1000),
+      GIGA   (MEGA * 1000)
 {
+    // Init curses mode
+    initscr();
+    // Avoid echoing
+    noecho();
+    // Disable line buffering
+    cbreak();
 }
 
 Outputter::~Outputter()
 {
+    // End curses mode
+    endwin();
+}
+
+string Outputter::convertValue(unsigned long long value) {
+    if (value >= this->GIGA)
+        return format("{:.1f}G", double(value/this->GIGA));
+    if (value >= this->MEGA)
+        return format("{:.1f}M", double(value/this->MEGA));
+    if (value >= this->KILO)
+        return format("{:.1f}K", double(value/this->KILO));
+    return format("{:.1f}", double(value));
 }
 
 void Outputter::processData(netMap data) {
@@ -29,13 +50,6 @@ void Outputter::processData(netMap data) {
 }
 
 void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
-    // Init curses mode
-    initscr();
-    // Avoid echoing
-    noecho();
-    // Disable line buffering
-    cbreak();
-
     /*** Define styling ***/
     // Column titles
     mvprintw(0, 0, "%-35s %-35s %-10s %-20s %-20s", "Src IP:port", "Dst IP:port", "Proto", "Rx", "Tx");
@@ -45,18 +59,16 @@ void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
     size_t pos = 2;
     // Show data
     for (auto record : data) {
-        mvprintw(pos, 0, "%-35s %-35s %-10s %-10llu %-10llu %-10llu %-10llu",
+        mvprintw(pos, 0, "%-35s %-35s %-10s %-10s %-10s %-10s %-10s",
                     get<0>(record.first).c_str(),
                     get<1>(record.first).c_str(),
                     get<2>(record.first).c_str(),
-                    record.second.bytes_rx,
-                    record.second.packets_rx,
-                    record.second.bytes_tx,
-                    record.second.packets_tx);
+                    this->convertValue(record.second.bytes_rx).c_str(),
+                    this->convertValue(record.second.packets_rx).c_str(),
+                    this->convertValue(record.second.bytes_tx).c_str(),
+                    this->convertValue(record.second.packets_tx).c_str());
         ++pos;
     }
     // Refresh with new data
     refresh();
-    // End curses mode
-    endwin();
 }

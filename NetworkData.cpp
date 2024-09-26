@@ -12,12 +12,12 @@ map<uint8_t, string> protocolsMap = {
 };
 
 NetworkData::NetworkData(const string interface)
-    : interface (interface),
-      macAddrs  (),
-      netData   (),
-      descr     (NULL),
-      devc      (NULL),
-      stop      (false)
+    : interface     (interface),
+      macAddrs      (),
+      netData       (),
+      descr         (NULL),
+      devc          (NULL),
+      captureThread ()
 {
     // Validate provided interface
     this->devc = this->validateInterface();
@@ -69,23 +69,22 @@ void NetworkData::capturePackets() {
         throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
 
     // Begin capturing loop
-    while(!this->stop) {
-        // Avoid throwing exception when capturing is purposely closed
-        if (pcap_loop(this->descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0 && !stop)
-            throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
+    while(true) {
+        // Setup loop and callback function
+        if (pcap_loop(this->descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
+            break;
     }
 }
 
 void NetworkData::startCapture() {
     // Create thread for capturing loop
-    jthread(&NetworkData::capturePackets, this);
+    this->captureThread = jthread(&NetworkData::capturePackets, this);
 }
 
 void NetworkData::stopCapture() {
-    this->stop = true;
-    pcap_freealldevs(this->devc);
     pcap_breakloop(this->descr);
     pcap_close(this->descr);
+    pcap_freealldevs(this->devc);
 }
 
 netMap NetworkData::getCurrentData() {
