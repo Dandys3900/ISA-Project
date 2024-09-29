@@ -23,6 +23,7 @@
 #include <linux/if_packet.h>
 #include <tuple>
 #include <ncurses.h>
+#include <atomic>
 
 #include "CustomException.cpp"
 

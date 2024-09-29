@@ -7,11 +7,8 @@ unique_ptr<NetworkData> netClass = nullptr;
 unique_ptr<Outputter> outClass   = nullptr;
 
 void stopProgram(int sig_val) {
-    if (sig_val == SIGINT) {
-        // Gracefully exit when terminated
-        netClass->stopCapture();
-        exit(EXIT_SUCCESS);
-    }
+    if (sig_val == SIGINT)
+        throw std::runtime_error("SIGINT received");
 }
 
 void showHelp() {
@@ -84,6 +81,9 @@ int main (int argc, char *argv[]) {
         cout << "Error: " << e.what() << endl;
         // Exit with failure status
         return EXIT_FAILURE;
+    } catch (const runtime_error& e) {
+        // Gracefully exit when terminated
+        netClass->stopCapture();
     }
     return EXIT_SUCCESS;
 }

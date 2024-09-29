@@ -17,17 +17,20 @@ class NetworkData {
         vector<string> macAddrs;
         netMap netData;
         pcap_t* descr;
-        pcap_if_t* devc;
         mutex vector_mutex;
         jthread captureThread;
+        atomic<bool> mp_stopCapture;
         // Error buffer
         char errbuf[PCAP_ERRBUF_SIZE];
 
         // Captures packets
         void capturePackets();
 
-        // Check if provided interface is valid and returns found device structure
-        pcap_if_t* validateInterface();
+        // Check if provided interface is valid and stores its MAC addresses using getMACAddrs()
+        void validateInterface();
+
+        // Returns interface's MAC addresses
+        vector<string> loadMACAddr(pcap_addr*);
 
     public:
         NetworkData (const string);

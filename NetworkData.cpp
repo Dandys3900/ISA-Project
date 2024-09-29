@@ -12,17 +12,15 @@ map<uint8_t, string> protocolsMap = {
 };
 
 NetworkData::NetworkData(const string interface)
-    : interface     (interface),
-      macAddrs      (),
-      netData       (),
-      descr         (NULL),
-      devc          (NULL),
-      captureThread ()
+    : interface      (interface),
+      macAddrs       (),
+      netData        (),
+      descr          (nullptr),
+      captureThread  (),
+      mp_stopCapture (false)
 {
-    // Validate provided interface
-    this->devc = this->validateInterface();
-    // Get interface MAC address(es)
-    this->macAddrs = getMACAddr(this->devc->addresses);
+    // Validate provided interface and load its MAC addresses
+    this->validateInterface();
 }
 
 NetworkData::~NetworkData()
@@ -45,62 +43,32 @@ void NetworkData::addRecord(netKey key, uint16_t bytes, string direction) {
     }
 }
 
-pcap_if_t* NetworkData::validateInterface() {
+void NetworkData::validateInterface() {
     // List of all devices
     pcap_if_t* alldevs;
+    pcap_if* dev;
 
     // Get all available devices
     if (pcap_findalldevs(&alldevs, this->errbuf) == -1)
         throw ProgramException(format("Error in {}: {}", __FUNCTION__, errbuf));
 
     // Iterate over device to find user-provided interface
-    for ( ; alldevs; alldevs = alldevs->next) {
+    for (dev = alldevs; dev; dev = dev->next) {
         // Device found, return it
-        if (alldevs->name == this->interface)
-            return alldevs;
-    }
-    // Device not found - throw error
-    throw ProgramException(format("Provided interface: {} not found", this->interface));
-}
-
-void NetworkData::capturePackets() {
-    // Open device for sniffing
-    if (!(this->descr = pcap_open_live(this->interface.c_str(), BUFSIZ, NON_PROMISCUOUS_MODE, -1, this->errbuf)))
-        throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
-
-    // Begin capturing loop
-    while(true) {
-        // Setup loop and callback function
-        if (pcap_loop(this->descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
+        if (dev->name == this->interface) {
+            this->macAddrs = this->loadMACAddr(dev->addresses);
             break;
+        }
     }
+    // Free resources
+    pcap_freealldevs(alldevs);
+    // Device not found - throw error
+    if (this->macAddrs.empty())
+        throw ProgramException(format("Provided interface: {} not found", this->interface));
 }
-
-void NetworkData::startCapture() {
-    // Create thread for capturing loop
-    this->captureThread = jthread(&NetworkData::capturePackets, this);
-}
-
-void NetworkData::stopCapture() {
-    pcap_breakloop(this->descr);
-    pcap_close(this->descr);
-    pcap_freealldevs(this->devc);
-}
-
-netMap NetworkData::getCurrentData() {
-    lock_guard<std::mutex> lock(this->vector_mutex);
-    // Return data
-    return this->netData;
-}
-
-const vector<string> NetworkData::getMACAddrs() {
-    return this->macAddrs;
-}
-
-/******************************************************************************/
 
 // Convert MAC of validated interface to string
-vector<string> getMACAddr(pcap_addr* addrs) {
+vector<string> NetworkData::loadMACAddr(pcap_addr* addrs) {
     vector<string> results;
     for ( ; addrs != nullptr; addrs = addrs->next) {
         // Make sure to handle only MAC
@@ -123,6 +91,46 @@ vector<string> getMACAddr(pcap_addr* addrs) {
     // Return parsed addresses
     return results;
 }
+
+void NetworkData::capturePackets() {
+    // Open device for sniffing
+    if (!(this->descr = pcap_open_live(this->interface.c_str(), BUFSIZ, NON_PROMISCUOUS_MODE, -1, this->errbuf)))
+        throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
+
+    // Begin capturing loop
+    while(!this->mp_stopCapture) {
+        // Setup loop and callback function
+        if (pcap_loop(this->descr, 1, handlePacket, reinterpret_cast<u_char*>(this)) < 0)
+            break;
+    }
+    // Free resources
+    pcap_close(this->descr);
+    this->descr = nullptr;
+}
+
+void NetworkData::startCapture() {
+    // Create thread for capturing loop
+    this->captureThread = jthread(&NetworkData::capturePackets, this);
+}
+
+void NetworkData::stopCapture() {
+    this->mp_stopCapture = true;
+    if (this->descr != nullptr) {
+        pcap_breakloop(this->descr);
+    }
+}
+
+netMap NetworkData::getCurrentData() {
+    lock_guard<std::mutex> lock(this->vector_mutex);
+    // Return data
+    return this->netData;
+}
+
+const vector<string> NetworkData::getMACAddrs() {
+    return this->macAddrs;
+}
+
+/******************************************************************************/
 
 void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
     // Ignore invalid packet
