@@ -26,11 +26,8 @@ class NetworkData {
         // Captures packets
         void capturePackets();
 
-        // Check if provided interface is valid and stores its MAC addresses using getMACAddrs()
-        void validateInterface();
-
-        // Returns interface's MAC addresses
-        vector<string> loadMACAddr(pcap_addr*);
+        // Check if provided interface is valid
+        bool validateInterface();
 
     public:
         NetworkData (const string);
@@ -42,7 +39,7 @@ class NetworkData {
         void stopCapture();
 
         // Adds captured data to vector
-        void addRecord(netKey, uint16_t, string);
+        void addRecord(const string, const string, const string, uint16_t);
 
         // Returns array of captured traffic
         netMap getCurrentData();

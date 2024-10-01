@@ -19,31 +19,39 @@ NetworkData::NetworkData(const string interface)
       captureThread  (),
       mp_stopCapture (false)
 {
-    // Validate provided interface and load its MAC addresses
-    this->validateInterface();
+    // Validate provided interface
+    if (!this->validateInterface())
+        throw ProgramException(format("Provided interface: {} not found", this->interface));
 }
 
 NetworkData::~NetworkData()
 {
 }
 
-void NetworkData::addRecord(netKey key, uint16_t bytes, string direction) {
+void NetworkData::addRecord(const string sourceIP, const string destIP, const string protocol, uint16_t bytes) {
     // Add parsed data to vector
     lock_guard<std::mutex> lock(this->vector_mutex);
-    // Get key value stored in map
-    NetRecord& curData = this->netData[key];
-    // Update record value
-    if (direction == TX) {
+    // Create map key
+    netKey key    = make_tuple(sourceIP, destIP, protocol);
+    netKey revKey = make_tuple(destIP, sourceIP, protocol);
+
+    if (this->netData.contains(revKey)) {
+        // Get key value stored in map
+        NetRecord& curData = this->netData[key];
+        // Direction: TX
         curData.bytes_tx   += bytes;
         curData.packets_tx += 1;
     }
-    else { // direction == RX
+    else {
+        // Get key value stored in map
+        NetRecord& curData = this->netData[key];
+        // Direction: RX
         curData.bytes_rx   += bytes;
         curData.packets_rx += 1;
     }
 }
 
-void NetworkData::validateInterface() {
+bool NetworkData::validateInterface() {
     // List of all devices
     pcap_if_t* alldevs;
     pcap_if* dev;
@@ -56,40 +64,12 @@ void NetworkData::validateInterface() {
     for (dev = alldevs; dev; dev = dev->next) {
         // Device found, return it
         if (dev->name == this->interface) {
-            this->macAddrs = this->loadMACAddr(dev->addresses);
-            break;
+            pcap_freealldevs(alldevs);
+            return true;
         }
     }
-    // Free resources
     pcap_freealldevs(alldevs);
-    // Device not found - throw error
-    if (this->macAddrs.empty())
-        throw ProgramException(format("Provided interface: {} not found", this->interface));
-}
-
-// Convert MAC of validated interface to string
-vector<string> NetworkData::loadMACAddr(pcap_addr* addrs) {
-    vector<string> results;
-    for ( ; addrs != nullptr; addrs = addrs->next) {
-        // Make sure to handle only MAC
-        if (addrs->addr->sa_family == AF_PACKET) {
-            struct sockaddr_ll* mac = (struct sockaddr_ll*) addrs->addr;
-            // Create string for address
-            string macAddr;
-            // Parse address to string
-            for (int i = 0; i < mac->sll_halen; ++i) {
-                macAddr += format("{:02x}", mac->sll_addr[i]);
-                macAddr += (i != (mac->sll_halen - 1)) ? ":" : "";
-            }
-            // Add parsed address to vector
-            results.push_back(macAddr);
-        }
-    }
-    // Make sure vector is not empty
-    if (results.empty())
-        throw ProgramException("None MAC address found for given interface");
-    // Return parsed addresses
-    return results;
+    return false;
 }
 
 void NetworkData::capturePackets() {
@@ -115,9 +95,8 @@ void NetworkData::startCapture() {
 
 void NetworkData::stopCapture() {
     this->mp_stopCapture = true;
-    if (this->descr != nullptr) {
+    if (this->descr != nullptr)
         pcap_breakloop(this->descr);
-    }
 }
 
 netMap NetworkData::getCurrentData() {
@@ -144,14 +123,6 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
     uint16_t bytes;
 
     auto ethHeader = (struct ether_header*)packet;
-    // Extract source and destination MAC addresses to determine packet direction
-    const string srcMAC  = ether_ntoa((struct ether_addr*)&ethHeader->ether_shost);
-    const string destMAC = ether_ntoa((struct ether_addr*)&ethHeader->ether_dhost);
-
-    // Determine packet direction
-    auto macAddrs = classPtr->getMACAddrs();
-    const string direction = (count(macAddrs.begin(), macAddrs.end(), srcMAC) > 0) ? TX : RX;
-
     // Adapt parsing to IP version
     switch(ntohs(ethHeader->ether_type)) {
         case ETHERTYPE_IP: { // IPv4
@@ -204,5 +175,5 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             throw ProgramException("Unknown protocol provided");
     }
     // Add parsed data to vector
-    classPtr->addRecord(make_tuple(sourceIP, destIP, protocol), bytes, direction);
+    classPtr->addRecord(sourceIP, destIP, protocol, bytes);
 }

@@ -5,10 +5,14 @@
 // Global class instances
 unique_ptr<NetworkData> netClass = nullptr;
 unique_ptr<Outputter> outClass   = nullptr;
+// Global bool for stopping sniffing loop in main()
+bool stop = false;
 
 void stopProgram(int sig_val) {
-    if (sig_val == SIGINT)
-        throw std::runtime_error("SIGINT received");
+    // Gracefully exit when terminated
+    netClass->stopCapture();
+    // Stop main() while loop
+    stop = true;
 }
 
 void showHelp() {
@@ -73,7 +77,7 @@ int main (int argc, char *argv[]) {
         // Begin capturing and processing packets
         netClass->startCapture();
         // Main function loop
-        while(true) {
+        while(!stop) {
             outClass->processData(netClass->getCurrentData());
             sleep(1);
         }
@@ -81,9 +85,6 @@ int main (int argc, char *argv[]) {
         cout << "Error: " << e.what() << endl;
         // Exit with failure status
         return EXIT_FAILURE;
-    } catch (const runtime_error& e) {
-        // Gracefully exit when terminated
-        netClass->stopCapture();
     }
     return EXIT_SUCCESS;
 }
