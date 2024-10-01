@@ -21,7 +21,7 @@ Outputter::~Outputter()
     endwin();
 }
 
-string Outputter::convertValue(unsigned long long value) {
+string Outputter::convertValue(longVal value) {
     if (value >= this->GIGA)
         return format("{:.1f}G", double(value/this->GIGA));
     if (value >= this->MEGA)
@@ -63,10 +63,10 @@ void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
                     get<0>(record.first).c_str(),
                     get<1>(record.first).c_str(),
                     get<2>(record.first).c_str(),
-                    this->convertValue(record.second.bytes_rx).c_str(),
-                    this->convertValue(record.second.packets_rx).c_str(),
-                    this->convertValue(record.second.bytes_tx).c_str(),
-                    this->convertValue(record.second.packets_tx).c_str());
+                    this->convertValue(record.second.bytes_rx.value).c_str(),
+                    this->convertValue(record.second.packets_rx.value).c_str(),
+                    this->convertValue(record.second.bytes_tx.value).c_str(),
+                    this->convertValue(record.second.packets_tx.value).c_str());
         ++pos;
     }
     // Refresh with new data

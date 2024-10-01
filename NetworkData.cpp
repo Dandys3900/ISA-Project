@@ -172,7 +172,7 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
         case ETHERTYPE_REVARP: // RARP
             return;
         default:
-            throw ProgramException("Unknown protocol provided");
+            throw ProgramException("Unknown EHT-type provided");
     }
     // Add parsed data to vector
     classPtr->addRecord(sourceIP, destIP, protocol, bytes);
