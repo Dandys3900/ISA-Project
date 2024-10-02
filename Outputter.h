@@ -16,8 +16,8 @@ struct safeValue {
     {
     }
 
-    // Overload += to handle value overflows
-    safeValue& operator+=(int incr_value) {
+    // Overload '+' operator
+    safeValue& operator+(int incr_value) {
         // If overflow, reset current value back to 0
         if (this->value > (numeric_limits<longVal>::max() - incr_value))
             this->value = 0;
@@ -25,14 +25,7 @@ struct safeValue {
         this->value += incr_value;
         return *this;
     }
-    // Overload + operator
-    friend safeValue operator+(const safeValue& leftVal, const safeValue& rightVal) {
-        safeValue result(leftVal);
-        // Use overloaded += operator
-        result += rightVal.value;
-        return result;
-    }
-    // Overload > operator
+    // Overload '>' operator
     friend bool operator>(const safeValue& leftVal, const safeValue& rightVal) {
         return leftVal.value > rightVal.value;
     }

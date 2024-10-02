@@ -39,15 +39,15 @@ void NetworkData::addRecord(const string sourceIP, const string destIP, const st
         // Get key value stored in map
         NetRecord& curData = this->netData[key];
         // Direction: TX
-        curData.bytes_tx   += bytes;
-        curData.packets_tx += 1;
+        curData.bytes_tx   = curData.bytes_tx + bytes;
+        curData.packets_tx = curData.packets_tx + 1;
     }
     else {
         // Get key value stored in map
         NetRecord& curData = this->netData[key];
         // Direction: RX
-        curData.bytes_rx   += bytes;
-        curData.packets_rx += 1;
+        curData.bytes_rx   = curData.bytes_rx + bytes;
+        curData.packets_rx = curData.packets_rx + 1;
     }
 }
 
