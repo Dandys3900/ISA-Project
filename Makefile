@@ -1,3 +1,6 @@
+# Author: Tomas Daniel
+# Login:  xdanie14
+
 CXX := g++
 CXXFLAGS := -std=c++20 -Wall -Wextra -g
 SRCS := main.cpp NetworkData.cpp Outputter.cpp CustomException.cpp

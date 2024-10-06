@@ -1,3 +1,8 @@
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
 #ifndef NETWORKDATACLASS_H
 #define NETWORKDATACLASS_H
 

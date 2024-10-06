@@ -1,3 +1,8 @@
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
 /*** Includes ***/
 #include "NetworkData.h"
 #include "Outputter.h"
@@ -9,6 +14,7 @@ unique_ptr<Outputter> outClass   = nullptr;
 bool stop = false;
 
 void stopProgram(int sig_val) {
+    (void) sig_val;
     // Gracefully exit when terminated
     netClass->stopCapture();
     // Stop main() while loop
@@ -25,42 +31,6 @@ void showHelp() {
     cout << help_text << endl;
 }
 
-auto parseCLIargs(int argc, char *argv[]) {
-    map<string, string> values;
-    // Iterate over given arguments
-    for (int pos = 1; pos < argc; ++pos) {
-        // Parse argument value
-        const string ident(argv[pos]);
-        // Check if there is following argument to read value from
-        if ((++pos) >= argc)
-            throw ProgramException("Missing value of argument");
-        // Check if argument is not duplicit
-        if (values.contains(ident))
-            throw ProgramException(format("Argument {} is already given", ident));
-
-        /* TODO:
-        // Special case for help argument
-        if (ident == "-h") {
-            showHelp();
-            continue;
-        }
-        */
-
-        if (ident == "-i" || ident == "-s")
-            values.insert({ident, argv[pos]});
-        else // Unknown argument
-            throw ProgramException(format("Unknown argument {}", ident));
-    }
-    // Check compulsory flag "-i" is present
-    if (!values.contains("-i"))
-        throw ProgramException("Missing compulsory '-i' flag");
-    // Add "-s" default value if not given
-    if (!values.contains("-s"))
-        values.insert({"-s", BYTES});
-    // Return parsed cli arguments
-    return values;
-}
-
 int main (int argc, char *argv[]) {
     // Set interrupt signal handling
     signal(SIGINT,  stopProgram);
@@ -69,7 +39,35 @@ int main (int argc, char *argv[]) {
 
     try {
         // Parse cli arguments
-        auto args = parseCLIargs(argc, argv);
+        map<string, string> args;
+        // Iterate over given arguments
+        for (int pos = 1; pos < argc; ++pos) {
+            // Parse argument value
+            const string ident(argv[pos]);
+            // Special case for help argument
+            if (ident == "-h") {
+                showHelp();
+                return EXIT_SUCCESS;
+            }
+            // Check if there is following argument to read value from
+            if ((++pos) >= argc)
+                throw ProgramException("Missing value of argument");
+            // Check if argument is not duplicit
+            if (args.contains(ident))
+                throw ProgramException(format("Argument {} is already given", ident));
+            // Determine type of argument
+            if (ident == "-i" || ident == "-s")
+                args.insert({ident, argv[pos]});
+            else // Unknown argument
+                throw ProgramException(format("Unknown argument {}", ident));
+        }
+        // Check compulsory flag "-i" is present
+        if (!args.contains("-i"))
+            throw ProgramException("Missing compulsory '-i' flag");
+        // Add "-s" default value if not given
+        if (!args.contains("-s"))
+            args.insert({"-s", BYTES});
+
         // Construct classes
         netClass = make_unique<NetworkData>((args.find("-i"))->second);
         outClass = make_unique<Outputter>((args.find("-s"))->second);

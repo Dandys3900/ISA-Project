@@ -1,3 +1,9 @@
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
+/*** Includes ***/
 #include <iostream>
 #include <exception>
 

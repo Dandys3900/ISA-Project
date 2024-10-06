@@ -1,3 +1,8 @@
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
 #ifndef INCLUDES_H
 #define INCLUDES_H
 

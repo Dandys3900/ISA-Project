@@ -1,3 +1,8 @@
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
 #ifndef OUTPUTTERCLASS_H
 #define OUTPUTTERCLASS_H
 

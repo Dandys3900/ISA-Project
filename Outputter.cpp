@@ -1,4 +1,9 @@
-///*** Includes ***/
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
+/*** Includes ***/
 #include "Outputter.h"
 
 Outputter::Outputter(const string sortby)

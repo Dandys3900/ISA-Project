@@ -1,4 +1,9 @@
-///*** Includes ***/
+/**
+ * Author: Tomas Daniel
+ * Login:  xdanie14
+*/
+
+/*** Includes ***/
 #include "NetworkData.h"
 
 // Convert protocol enum to string
@@ -37,7 +42,7 @@ void NetworkData::addRecord(const string sourceIP, const string destIP, const st
 
     if (this->netData.contains(revKey)) {
         // Get key value stored in map
-        NetRecord& curData = this->netData[key];
+        NetRecord& curData = this->netData[revKey];
         // Direction: TX
         curData.bytes_tx   += bytes;
         curData.packets_tx += 1;
@@ -156,7 +161,7 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             inet_ntop(AF_INET6, &(ipHeader->ip6_src), sourceIP.data(), INET6_ADDRSTRLEN);
             inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(),   INET6_ADDRSTRLEN);
             protocol = (protocolsMap.find(ipHeader->ip6_nxt))->second;
-            bytes    = ntohs(ipHeader->ip6_plen) + IPV6_HEADER;
+            bytes    = ntohs(ipHeader->ip6_plen);
 
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip6_nxt == IPPROTO_TCP || ipHeader->ip6_nxt == IPPROTO_UDP) {
