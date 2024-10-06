@@ -42,10 +42,10 @@ void Outputter::processData(netMap data) {
 
     // Descending sort by (bytes_rx + bytes_tx) or (packets_rx + packets_tx)
     sort(dataVec.begin(), dataVec.end(), [this](const auto& a, const auto& b) {
-        if (sortby == BYTES)
-            return ((a.second.bytes_tx + a.second.bytes_rx) > (b.second.bytes_tx + b.second.bytes_rx));
-        // sortby == PACKETS
-        return ((a.second.packets_tx + a.second.packets_rx) > (b.second.packets_tx + b.second.packets_rx));
+        if (this->sortby == PACKETS)
+            return ((a.second.packets_tx + a.second.packets_rx) > (b.second.packets_tx + b.second.packets_rx));
+        // sortby == BYTES
+        return ((a.second.bytes_tx + a.second.bytes_rx) > (b.second.bytes_tx + b.second.bytes_rx));
     });
     // Get top 10 records
     if (dataVec.size() > 10)

@@ -1,6 +1,75 @@
-/**
- * Author: Tomas Daniel
- * Login:  xdanie14
-*/
+.\" Author: Tomas Daniel
+.\" Login:  xdanie14
+.\" Creation date: 06.10.2024
 
-README FILE TODO
+.TH ISA-TOP
+.SH NAME
+isa-top \- terminal network metrics tool
+
+.SH SYNOPSIS
+.B sudo ./isa-top
+[\fB\-i\fR \fIINTERFACE\fR]
+[\fB\-s\fR \fBb|p\fR]
+[\fB\-h\fR]
+.TP
+.B -> tool needs to be run in priviledged (sudo) mode! <-
+
+.SH DESCRIPTION
+.B isa-top
+provides selected network interface metrics in terminal.
+
+.SH OPTIONS
+.TP
+.BR \-i =\fIINTERFACE\fR
+Name of target interface for network metrics collection.
+.TP
+.BR \-s =\fIb|p\fR
+Sorts outputted network connections either by bytes or packets per second.
+.B Default is bytes per second.
+.B Note that when given unexpected value, default sorting is used.
+.TP
+.BR \-h
+Shows tool help text.
+
+.SH EXAMPLE
+.BR "sudo ./isa-top -i eth0"
+.PP
+.nf
+.RS
+Src IP:port                         Dst IP:port                         Proto      Rx                   Tx
+                                                                                   b/s        p/s        b/s        p/s
+172.19.251.99:56720                 77.75.79.195:443                    tcp        14.7K      182.0      2.6M       215.0
+172.19.251.99:47699                 142.251.37.100:443                  udp        43.3K      170.0      1.0M       852.0
+172.19.251.99:36028                 77.75.77.195:443                    tcp        6.0K       57.0       225.3K     51.0
+172.19.251.99:53796                 77.75.76.30:443                     tcp        45.8K      125.0      185.0K     104.0
+172.19.251.99:37888                 77.75.77.222:443                    tcp        8.9K       49.0       140.8K     48.0
+172.19.251.99:59704                 142.251.37.99:443                   udp        4.9K       33.0       87.7K      75.0
+172.19.251.99:59394                 77.75.76.20:443                     tcp        30.1K      26.0       6.6K       30.0
+172.19.251.99:39512                 77.75.79.115:443                    tcp        1.8K       13.0       30.5K      12.0
+172.19.251.99:35998                 77.75.77.195:443                    tcp        2.7K       23.0       21.3K      19.0
+172.19.251.99:56708                 77.75.79.195:443                    tcp        2.2K       20.0       21.7K      17.0
+.RE
+.fi
+.PP
+
+.SH PROJECT FILES
+.IP \[bu] 2
+CustomException.cpp
+.IP \[bu] 2
+Includes.h
+.IP \[bu] 2
+isa-top.1
+.IP \[bu] 2
+main.cpp
+.IP \[bu] 2
+Makefile
+.IP \[bu] 2
+manual.pdf
+.IP \[bu] 2
+NetworkData.cpp
+.IP \[bu] 2
+NetworkData.h
+.IP \[bu] 2
+Outputter.cpp
+.IP \[bu] 2
+Outputter.h
