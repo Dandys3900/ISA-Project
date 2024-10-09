@@ -38,7 +38,7 @@ string Outputter::convertValue(longVal value) {
 
 void Outputter::processData(netMap data) {
     // Convert given map to vector to sort it
-    vector<pair<netKey, NetRecord>> dataVec(data.begin(), data.end());
+    vector<pair<netKey, netRecord>> dataVec(data.begin(), data.end());
 
     // Descending sort by (bytes_rx + bytes_tx) or (packets_rx + packets_tx)
     sort(dataVec.begin(), dataVec.end(), [this](const auto& a, const auto& b) {
@@ -54,7 +54,7 @@ void Outputter::processData(netMap data) {
     this->showData(dataVec);
 }
 
-void Outputter::showData(const vector<pair<netKey, NetRecord>> data) {
+void Outputter::showData(const vector<pair<netKey, netRecord>> data) {
     /*** Define styling ***/
     // Column titles
     mvprintw(0, 0, "%-35s %-35s %-10s %-20s %-20s", "Src IP:port", "Dst IP:port", "Proto", "Rx", "Tx");

@@ -21,7 +21,6 @@
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
 #include <netinet/tcp.h>
-#include <netinet/udp.h>
 #include <netinet/ether.h>
 #include <arpa/inet.h>
 #include <algorithm>

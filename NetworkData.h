@@ -19,7 +19,6 @@ void handlePacket(u_char*, const struct pcap_pkthdr*, const u_char*);
 class NetworkData {
     private:
         const string interface;
-        vector<string> macAddrs;
         netMap netData;
         pcap_t* descr;
         mutex vector_mutex;
@@ -48,9 +47,6 @@ class NetworkData {
 
         // Returns array of captured traffic
         netMap getCurrentData();
-
-        // Returns interface's MAC addresses
-        const vector<string> getMACAddrs();
 };
 
 #endif // NETWORKDATACLASS_H

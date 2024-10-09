@@ -49,11 +49,11 @@ typedef struct {
     safeValue packets_rx;
     safeValue bytes_tx;
     safeValue bytes_rx;
-} NetRecord;
+} netRecord;
 
 // Key = (source IP, destination IP, protocol)
 using netKey = tuple<string, string, string>;
-using netMap = map<netKey, NetRecord>;
+using netMap = map<netKey, netRecord>;
 
 class Outputter {
     private:
@@ -61,7 +61,7 @@ class Outputter {
         longVal KILO, MEGA, GIGA;
 
         // Use ncurses to display data in terminal
-        void showData(const vector<pair<netKey, NetRecord>>);
+        void showData(const vector<pair<netKey, netRecord>>);
 
         // Convert values to kilo, mega, giga
         string convertValue(longVal);

@@ -18,7 +18,6 @@ map<uint8_t, string> protocolsMap = {
 
 NetworkData::NetworkData(const string interface)
     : interface      (interface),
-      macAddrs       (),
       netData        (),
       descr          (nullptr),
       captureThread  (),
@@ -42,14 +41,14 @@ void NetworkData::addRecord(const string sourceIP, const string destIP, const st
 
     if (this->netData.contains(revKey)) {
         // Get key value stored in map
-        NetRecord& curData = this->netData[revKey];
+        netRecord& curData = this->netData[revKey];
         // Direction: TX
         curData.bytes_tx   += bytes;
         curData.packets_tx += 1;
     }
     else {
         // Get key value stored in map
-        NetRecord& curData = this->netData[key];
+        netRecord& curData = this->netData[key];
         // Direction: RX
         curData.bytes_rx   += bytes;
         curData.packets_rx += 1;
@@ -110,10 +109,6 @@ netMap NetworkData::getCurrentData() {
     return this->netData;
 }
 
-const vector<string> NetworkData::getMACAddrs() {
-    return this->macAddrs;
-}
-
 /******************************************************************************/
 
 void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* packet) {
@@ -145,8 +140,8 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
                 auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + (4 * ipHeader->ip_hl));
                 // Add ports to IP addresses
-                sourceIP = format("{}:{}", sourceIP, ntohs(header->th_sport));
-                destIP   = format("{}:{}", destIP,   ntohs(header->th_dport));
+                sourceIP = format("{}:{}", sourceIP, ntohs(header->source));
+                destIP   = format("{}:{}", destIP,   ntohs(header->dest));
             }
             break;
         }
@@ -168,8 +163,8 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
                 auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + IPV6_HEADER);
                 // Add ports to IP addresses
-                sourceIP = format("[{}]:{}", sourceIP, ntohs(header->th_sport));
-                destIP   = format("[{}]:{}", destIP,   ntohs(header->th_dport));
+                sourceIP = format("[{}]:{}", sourceIP, ntohs(header->source));
+                destIP   = format("[{}]:{}", destIP,   ntohs(header->dest));
             }
             break;
         }
