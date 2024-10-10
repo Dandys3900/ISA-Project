@@ -12,43 +12,12 @@
 // Typedef for used data type
 typedef long double longVal;
 
-// Custom struct for avoiding value overflowing
-struct safeValue {
-    longVal value;
-    // Constructor
-    safeValue()
-        : value (0)
-    {
-    }
-
-    // Overload += to handle value overflows
-    safeValue& operator+=(int incr_value) {
-        // If overflow, reset current value back to 0
-        if (this->value > (numeric_limits<longVal>::max() - incr_value))
-            this->value = 0;
-        // Do increment when safe
-        this->value += incr_value;
-        return *this;
-    }
-    // Overload + operator
-    friend safeValue operator+(const safeValue& leftVal, const safeValue& rightVal) {
-        safeValue result(leftVal);
-        // Use overloaded += operator
-        result += rightVal.value;
-        return result;
-    }
-    // Overload > operator
-    friend bool operator>(const safeValue& leftVal, const safeValue& rightVal) {
-        return leftVal.value > rightVal.value;
-    }
-};
-
 // Structure representing captured network traffic
 typedef struct {
-    safeValue packets_tx;
-    safeValue packets_rx;
-    safeValue bytes_tx;
-    safeValue bytes_rx;
+    longVal packets_tx = 0.0;
+    longVal packets_rx = 0.0;
+    longVal bytes_tx   = 0.0;
+    longVal bytes_rx   = 0.0;
 } netRecord;
 
 // Key = (source IP, destination IP, protocol)

@@ -7,12 +7,14 @@
 #include <iostream>
 #include <exception>
 
-class ProgramException: public std::exception {
+using namespace std;
+
+class ProgramException: public exception {
     private:
-        const std::string message;
+        const string message;
     public:
         // Constructor to initialize the exception message
-        ProgramException(const std::string& msg)
+        ProgramException(const string& msg)
             : message(msg)
         {
         }

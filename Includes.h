@@ -29,7 +29,7 @@
 #include <ncurses.h>
 #include <atomic>
 
-#include "CustomException.cpp"
+#include "CustomException.h"
 
 using namespace std;
 

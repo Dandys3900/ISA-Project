@@ -10,9 +10,6 @@
 #include "Includes.h"
 #include "Outputter.h"
 
-// Get MAC address of selected interface
-vector<string> getMACAddr(pcap_addr*);
-
 // Handles captured packet
 void handlePacket(u_char*, const struct pcap_pkthdr*, const u_char*);
 

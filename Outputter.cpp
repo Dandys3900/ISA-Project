@@ -68,10 +68,10 @@ void Outputter::showData(const vector<pair<netKey, netRecord>> data) {
                     get<0>(record.first).c_str(),
                     get<1>(record.first).c_str(),
                     get<2>(record.first).c_str(),
-                    this->convertValue(record.second.bytes_rx.value).c_str(),
-                    this->convertValue(record.second.packets_rx.value).c_str(),
-                    this->convertValue(record.second.bytes_tx.value).c_str(),
-                    this->convertValue(record.second.packets_tx.value).c_str());
+                    this->convertValue(record.second.bytes_rx).c_str(),
+                    this->convertValue(record.second.packets_rx).c_str(),
+                    this->convertValue(record.second.bytes_tx).c_str(),
+                    this->convertValue(record.second.packets_tx).c_str());
         ++pos;
     }
     // Refresh with new data
