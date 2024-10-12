@@ -30,7 +30,7 @@ class Outputter {
         longVal KILO, MEGA, GIGA;
 
         // Use ncurses to display data in terminal
-        void showData(const vector<pair<netKey, netRecord>>);
+        void showData(const vector<pair<netKey, netRecord>>&);
 
         // Convert values to kilo, mega, giga
         string convertValue(longVal);

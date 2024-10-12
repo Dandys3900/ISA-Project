@@ -105,8 +105,12 @@ void NetworkData::stopCapture() {
 
 netMap NetworkData::getCurrentData() {
     lock_guard<std::mutex> lock(this->vector_mutex);
-    // Return data
-    return this->netData;
+    // Make copy
+    auto map_copy = this->netData;
+    // Clear original map
+    this->netData.clear();
+    // Return copy
+    return map_copy;
 }
 
 /******************************************************************************/
@@ -132,8 +136,11 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             // Get source, destination, protocol and bytes
             sourceIP = inet_ntoa(ipHeader->ip_src);
             destIP   = inet_ntoa(ipHeader->ip_dst);
-            protocol = (protocolsMap.find(ipHeader->ip_p))->second;
             bytes    = ntohs(ipHeader->ip_len);
+            // Unsupported protocol -> ignore it
+            if (protocolsMap.contains(ipHeader->ip_p))
+                protocol = (protocolsMap.find(ipHeader->ip_p))->second;
+            else return;
 
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip_p == IPPROTO_TCP || ipHeader->ip_p == IPPROTO_UDP) {
@@ -155,8 +162,11 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
             // Get source, destination, protocol and bytes
             inet_ntop(AF_INET6, &(ipHeader->ip6_src), sourceIP.data(), INET6_ADDRSTRLEN);
             inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(),   INET6_ADDRSTRLEN);
-            protocol = (protocolsMap.find(ipHeader->ip6_nxt))->second;
-            bytes    = ntohs(ipHeader->ip6_plen);
+            bytes = ntohs(ipHeader->ip6_plen);
+            // Unsupported protocol -> ignore it
+            if (protocolsMap.contains(ipHeader->ip6_nxt))
+                protocol = (protocolsMap.find(ipHeader->ip6_nxt))->second;
+            else return;
 
             // Depending on used protocol, also add source and destination ports
             if (ipHeader->ip6_nxt == IPPROTO_TCP || ipHeader->ip6_nxt == IPPROTO_UDP) {

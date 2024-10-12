@@ -54,7 +54,9 @@ void Outputter::processData(netMap data) {
     this->showData(dataVec);
 }
 
-void Outputter::showData(const vector<pair<netKey, netRecord>> data) {
+void Outputter::showData(const vector<pair<netKey, netRecord>>& data) {
+    // Clear before new showing
+    clear();
     /*** Define styling ***/
     // Column titles
     mvprintw(0, 0, "%-35s %-35s %-10s %-20s %-20s", "Src IP:port", "Dst IP:port", "Proto", "Rx", "Tx");
