@@ -25,7 +25,7 @@ NetworkData::NetworkData(const string interface)
 {
     // Validate provided interface
     if (!this->validateInterface())
-        throw ProgramException(format("Provided interface: {} not found", this->interface));
+        throw ProgramException(string("Provided interface not found: " + this->interface));
 }
 
 NetworkData::~NetworkData()
@@ -62,7 +62,7 @@ bool NetworkData::validateInterface() {
 
     // Get all available devices
     if (pcap_findalldevs(&alldevs, this->errbuf) == -1)
-        throw ProgramException(format("Error in {}: {}", __FUNCTION__, errbuf));
+        throw ProgramException(string(this->errbuf));
 
     // Iterate over device to find user-provided interface
     for (dev = alldevs; dev; dev = dev->next) {
@@ -79,7 +79,7 @@ bool NetworkData::validateInterface() {
 void NetworkData::capturePackets() {
     // Open device for sniffing
     if (!(this->descr = pcap_open_live(this->interface.c_str(), BUFSIZ, NON_PROMISCUOUS_MODE, -1, this->errbuf)))
-        throw ProgramException(format("Error in {}: {}", __FUNCTION__, this->errbuf));
+        throw ProgramException(string(this->errbuf));
 
     // Begin capturing loop
     while(!this->mp_stopCapture) {
@@ -147,8 +147,8 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
                 auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + (4 * ipHeader->ip_hl));
                 // Add ports to IP addresses
-                sourceIP = format("{}:{}", sourceIP, ntohs(header->source));
-                destIP   = format("{}:{}", destIP,   ntohs(header->dest));
+                sourceIP = sourceIP + ":" + to_string(ntohs(header->source));
+                destIP   = destIP   + ":" + to_string(ntohs(header->dest));
             }
             break;
         }
@@ -173,8 +173,8 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
                 auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + IPV6_HEADER);
                 // Add ports to IP addresses
-                sourceIP = format("[{}]:{}", sourceIP, ntohs(header->source));
-                destIP   = format("[{}]:{}", destIP,   ntohs(header->dest));
+                sourceIP = sourceIP + ":" + to_string(ntohs(header->source));
+                destIP   = destIP   + ":" + to_string(ntohs(header->dest));
             }
             break;
         }

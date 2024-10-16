@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string>
 #include <map>
-#include <format>
 #include <csignal>
 #include <vector>
 #include <thread>

@@ -26,14 +26,20 @@ Outputter::~Outputter()
     endwin();
 }
 
-string Outputter::convertValue(longVal value) {
+const string Outputter::formatOutput(double value, char suffix='\0') {
+    char buffer[50];
+    snprintf(buffer, sizeof(buffer), "%.1f%c", value, suffix);
+    return string(buffer);
+}
+
+const string Outputter::convertValue(longVal value) {
     if (value >= this->GIGA)
-        return format("{:.1f}G", double(value/this->GIGA));
+        return this->formatOutput(double(value/this->GIGA), 'G');
     if (value >= this->MEGA)
-        return format("{:.1f}M", double(value/this->MEGA));
+        return this->formatOutput(double(value/this->MEGA), 'M');
     if (value >= this->KILO)
-        return format("{:.1f}K", double(value/this->KILO));
-    return format("{:.1f}", double(value));
+        return this->formatOutput(double(value/this->KILO), 'K');
+    return this->formatOutput(double(value));
 }
 
 void Outputter::processData(netMap data) {

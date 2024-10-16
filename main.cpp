@@ -54,12 +54,12 @@ int main (int argc, char *argv[]) {
                 throw ProgramException("Missing value of argument");
             // Check if argument is not duplicit
             if (args.contains(ident))
-                throw ProgramException(format("Argument {} is already given", ident));
+                throw ProgramException(string("Argument is already given: " + ident));
             // Determine type of argument
             if (ident == "-i" || ident == "-s")
                 args.insert({ident, argv[pos]});
             else // Unknown argument
-                throw ProgramException(format("Unknown argument {}", ident));
+                throw ProgramException(string("Unknown argument: " + ident));
         }
         // Check compulsory flag "-i" is present
         if (!args.contains("-i"))

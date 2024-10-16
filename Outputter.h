@@ -32,8 +32,10 @@ class Outputter {
         // Use ncurses to display data in terminal
         void showData(const vector<pair<netKey, netRecord>>&);
 
+        // Performs formatting of converted value
+        const string formatOutput(double, char);
         // Convert values to kilo, mega, giga
-        string convertValue(longVal);
+        const string convertValue(longVal);
 
     public:
         Outputter (const string);
