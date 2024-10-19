@@ -1,6 +1,8 @@
 # Author: Tomas Daniel
 # Login:  xdanie14
 
+__pycache__
+
 # VSCode configuration files
 /.vscode
 
