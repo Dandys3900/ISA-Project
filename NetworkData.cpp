@@ -155,13 +155,15 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
         case ETHERTYPE_IPV6: { // IPv6
             // Extract data from packet
             auto ipHeader = (struct ip6_hdr*)(packet + ETHERNET_HEADER);
-            // Ensure enough size of address strings
-            sourceIP.resize(INET6_ADDRSTRLEN);
-            destIP.resize(INET6_ADDRSTRLEN);
+            // Create buffers for addresses
+            char src_addr[INET6_ADDRSTRLEN];
+            char dest_addr[INET6_ADDRSTRLEN];
 
             // Get source, destination, protocol and bytes
-            inet_ntop(AF_INET6, &(ipHeader->ip6_src), sourceIP.data(), INET6_ADDRSTRLEN);
-            inet_ntop(AF_INET6, &(ipHeader->ip6_dst), destIP.data(),   INET6_ADDRSTRLEN);
+            inet_ntop(AF_INET6, &(ipHeader->ip6_src), src_addr, sizeof(src_addr));
+            sourceIP = src_addr;
+            inet_ntop(AF_INET6, &(ipHeader->ip6_dst), dest_addr, sizeof(dest_addr));
+            destIP = dest_addr;
             bytes = ntohs(ipHeader->ip6_plen);
             // Unsupported protocol -> ignore it
             if (protocolsMap.contains(ipHeader->ip6_nxt))
@@ -173,8 +175,8 @@ void handlePacket(u_char* args, const struct pcap_pkthdr* header, const u_char* 
                 // Interested src and dest values have same ofset for both TCP and UDP, so we can treat them same
                 auto header = (struct tcphdr*)(packet + ETHERNET_HEADER + IPV6_HEADER);
                 // Add ports to IP addresses
-                sourceIP = sourceIP + ":" + to_string(ntohs(header->source));
-                destIP   = destIP   + ":" + to_string(ntohs(header->dest));
+                sourceIP = "[" + sourceIP + "]" + ":" + to_string(ntohs(header->source));
+                destIP   = "[" + destIP   + "]" + ":" + to_string(ntohs(header->dest));
             }
             break;
         }

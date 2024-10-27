@@ -8,3 +8,6 @@ __pycache__
 
 # Compiled Executable
 /isa-top
+
+# Submission archive
+*.tar
